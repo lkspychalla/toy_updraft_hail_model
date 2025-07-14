@@ -477,7 +477,7 @@ def hail_model(n_samples=1, n_realizations=1, n_chunks=128, seed=0, dt=1, sampli
     # Parse the output_data_list into separate pieces of data
     sample_idx      = np.stack(sum([x[0] for x in output_data_list],[])).reshape(n_samples, n_realizations)
     realization_idx = np.stack(sum([x[1] for x in output_data_list],[])).reshape(n_samples, n_realizations)
-    total_time      = np.stack(sum([x[2] for x in output_data_list],[])).reshape(n_samples, n_realizations)
+    t_tot           = np.stack(sum([x[2] for x in output_data_list],[])).reshape(n_samples, n_realizations)
     D_max           = np.stack(sum([x[3] for x in output_data_list],[])).reshape(n_samples, n_realizations)
     lofted          = np.stack(sum([x[4] for x in output_data_list],[])).reshape(n_samples, n_realizations)
     realization_labels = realization_idx[0]
