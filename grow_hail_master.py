@@ -1,6 +1,6 @@
 '''
-7/10/2025
-testing_sp_mp_ex_manual.py
+7/14/2025
+grow_hail_master.py
 By Lydia Spychalla
 
 Refer to Spychalla and Kumjian (2025a) "An Analytic Approximation of Vertical Velocity and Liquid Water Content Profiles in Supercell Updrafts and Their Use in a Novel Idealized Hail Model" (Journal of Atmospheric Science). The equations used herein are taken from this study, where the hail model is described in detail.
@@ -10,7 +10,8 @@ This script will compute hailstone trajectories from specified parameters, or fr
 Tasks:
 - Look over comments to see if anything is incomplete
 - Test speed. Feels a little slow and not sure if anything is gumming up the computation?
-- Fix crash when n_chunks > n_realizations*n_samples - manually set samples to n_realizations*n_samples
+- t_tot returning bool not int
+- chunks issue still happening
 
 Tasks I think I've completed, but should check:
 - delt = 1. Update so that a user may specify
@@ -353,7 +354,7 @@ def grow_hail(chunk_idx):
     # Define an array arrays to hold the data to return including final size, final location, total time aloft, and a flag for trajectory completion
     D_max      = np.zeros_like(Di)*np.nan
     lofted     = np.zeros_like(Di).astype(bool)
-    t_tot      = np.zeros_like(Di).astype(bool)
+    t_tot      = np.zeros_like(Di)*np.nan
     finished   = np.zeros_like(Di).astype(bool)
    
 
