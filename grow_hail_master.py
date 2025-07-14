@@ -10,8 +10,6 @@ This script will compute hailstone trajectories from specified parameters, or fr
 Tasks:
 - Look over comments to see if anything is incomplete
 - Test speed. Feels a little slow and not sure if anything is gumming up the computation?
-- t_tot returning bool not int
-- chunks issue still happening
 
 Tasks I think I've completed, but should check:
 - delt = 1. Update so that a user may specify
@@ -20,6 +18,7 @@ Tasks I think I've completed, but should check:
 - Fixed the EX sampling issue. Had negative d_lwcs instead of positive
 - Clean up and break up the sampling function into smaller subfunctions
 - Made a note that n_samples is not used when sampling_method='manual'
+- chunks issue still happening
 '''
 
 
@@ -394,7 +393,6 @@ def grow_hail(chunk_idx):
 
     # Return a list of the hailstones' indexes, total time aloft, final size, and whether they were lofted or hit the ground
     return_list = [list(sample_idx), list(realization_idx), list(t_tot), list(D_max), list(lofted),]
-    
     return return_list
 
 
@@ -449,7 +447,7 @@ Outputs:
                                      the corresponding size statistics, lofting flags
                                      and time statistics
 '''
-def hail_model(n_samples=1, n_realizations=1, n_chunks=128, seed=0, dt=1, sampling_method='ex', ds_hail=None, ds_storm=None, ds_all=None):
+def hail_model(n_samples=1, n_realizations=1, n_chunks=1, seed=0, dt=1, sampling_method='ex', ds_hail=None, ds_storm=None, ds_all=None):
 
     # Set a random seed and define global variables
     np.random.seed(seed)
@@ -462,9 +460,16 @@ def hail_model(n_samples=1, n_realizations=1, n_chunks=128, seed=0, dt=1, sampli
     if n_chunks > n_samples:
         warnings.warn(f'n_chunks too large for number of samples. Current n_samples = {n_samples} and n_chunks = {n_chunks}. Changing n_chunks = {n_samples}.')
         n_chunks = n_samples
-        
+    
     # Define chunk size for parallelization, and rename variables to globally-defined names
     chunk_size = np.ceil(n_samples/n_chunks).astype(int)
+    # If n_chunks is too large and not a factor of n_samples, some of our chunks will be empty. Find out how many
+    n_empty_chunks = np.floor((chunk_size*n_chunks - n_samples) / chunk_size).astype(int)
+    if n_empty_chunks > 0:
+    # Subtract the empty chunks from the given n_chunks
+        warnings.warn(f'Removing {n_empty_chunks} from n_chunks because they would be empty.')
+        n_chunks = n_chunks - n_empty_chunks
+  
     realizations = n_realizations
     samples = n_samples
     delt = dt
@@ -472,7 +477,7 @@ def hail_model(n_samples=1, n_realizations=1, n_chunks=128, seed=0, dt=1, sampli
     # Parallelization for hail trajectory computation. Chunk the computation into n_chunks groups
     # All hail trajectory results are saved into output_data_list
     with multiprocessing.Pool() as p:
-        output_data_list = list(tqdm(p.imap(grow_hail,range(n_chunks)), total=n_chunks))
+        output_data_list = list(tqdm(p.imap(grow_hail, range(n_chunks)), total=n_chunks))
     p.close()
 
     # Parse the output_data_list into separate pieces of data
